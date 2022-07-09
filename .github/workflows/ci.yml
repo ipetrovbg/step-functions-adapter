@@ -25,4 +25,4 @@ jobs:
           git config user.email github-actions@github.com
           git config user.name github-actions@github.com
           git commit -m "chore:release"
-          git push
+          git push origin HEAD:main
