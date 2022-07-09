@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main
+env:
+  VERSION: 0.0.0
 
 jobs:
   release:
@@ -13,14 +15,15 @@ jobs:
       - uses: actions/checkout@v3
         with:
           token: ${{ secrets.GH_RELEASE_TOKEN }}
-#          fetch-depth: 0
-#      - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Setup Cargo
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
       - run: cargo install cargo-v
-      - run: cargo v 0.2.0 -y
+      - name: Update version
+        run: echo "::set-output name=VERSION:: | cargo pkgid | cut -d# -f2 | cut -d: -f2"
+        id: version
+      - run: cargo v ${{ steps.version.outputs.VERSION }} -y
       - name: Set git user config
         run: |
           git config user.email github-actions@github.com
