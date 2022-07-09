@@ -26,11 +26,11 @@ jobs:
           toolchain: stable
       - name: Set Major version
         run: |
-          echo "::set-output name=MAJOR::$(echo cargo pkgid | cut -d# -f2 | cut -d. -f1)"
-          echo "::set-output name=MINOR::$(echo cargo pkgid | cut -d# -f2 | cut -d. -f2)"
-          echo "::set-output name=PATCH::$(echo cargo pkgid | cut -d# -f2 | cut -d. -f3)"
+          echo "::set-output name=MAJOR::$(cargo pkgid | cut -d# -f2 | cut -d. -f1)"
+          echo "::set-output name=MINOR::$(cargo pkgid | cut -d# -f2 | cut -d. -f2)"
+          echo "::set-output name=PATCH::$(cargo pkgid | cut -d# -f2 | cut -d. -f3)"
         id: version
-      - run: echo (${{ steps.version.outputs.MAJOR }}.${{ steps.version.outputs.MINOR }}.${{ steps.version.outputs.PATCH }})
+      - run: echo "${{ steps.version.outputs.MAJOR }}.${{ steps.version.outputs.MINOR }}.${{ steps.version.outputs.PATCH }}"
 #      - run: cargo install cargo-v
 #      - run: cargo v ${{ steps.version.outputs.MAJOR }}.${{ steps.version.outputs.MINOR }}.${{ steps.version.outputs.PATCH }} -y
 #      - name: Set git user config
