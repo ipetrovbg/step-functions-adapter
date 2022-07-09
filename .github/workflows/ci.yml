@@ -12,9 +12,6 @@ jobs:
     needs: e2e
     steps:
       - uses: actions/checkout@v2
-#        with:
-#          token: ${{ secrets.GH_RELEASE_TOKEN }}
-#          fetch-depth: 0
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -22,5 +19,3 @@ jobs:
       - run: cargo v 0.2.0 -y
       - run: git commit -m "chore:release"
       - run: git push
-
-#      - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
