@@ -11,7 +11,9 @@ on:
     branches:
       - main
 env:
-  VERSION: '0.2.10'
+  MAJOR: 0
+  MINOR: 2
+  PATCH: 11
 
 jobs:
   release:
@@ -27,7 +29,7 @@ jobs:
         with:
           toolchain: stable
       - run: cargo install cargo-v
-      - run: cargo v ${{ env.VERSION }} -y
+      - run: cargo v ${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.PATCH }} -y
       - name: Set git user config
         run: |
           git config user.email ipetrovbg@gmail.com
