@@ -7,7 +7,7 @@ on:
 jobs:
   release:
     name: Release
-    if: !contains(github.event.head_commit.message, 'release')
+    if: contains(github.event.head_commit.message, 'release')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -23,5 +23,5 @@ jobs:
         run: |
           git config user.email ipetrovbg@gmail.com
           git config user.name Petar Petrov
-          git commit -m "chore:release"
+          git commit -m "chore:bump version"
           git push
