@@ -19,7 +19,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-        run: cargo install cargo-v
+      - run: cargo install cargo-v
       - run: cargo v 0.2.0 -y
       - run: git commit -m "chore:release"
       - run: git push
