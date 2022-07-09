@@ -22,7 +22,7 @@ jobs:
         with:
           toolchain: stable
       - run: cargo install cargo-v
-      - run: cargo v 0.2.7 -y
+      - run: cargo v 0.2.6 -y
       - name: Set git user config
         run: |
           git config user.email ipetrovbg@gmail.com
