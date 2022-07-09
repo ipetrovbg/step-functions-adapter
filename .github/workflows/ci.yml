@@ -23,7 +23,7 @@ jobs:
       - name: Update version
         run: echo "::set-output name=VERSION::$(echo cargo pkgid | cut -d# -f2 | cut -d":" -f2)"
         id: version
-      - run: cargo v $(echo steps.version.outputs.VERSION) -y
+      - run: cargo v ${{ steps.version.outputs.VERSION }} -y
       - name: Set git user config
         run: |
           git config user.email github-actions@github.com
