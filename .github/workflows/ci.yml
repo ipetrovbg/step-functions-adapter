@@ -33,8 +33,8 @@ jobs:
           echo "::set-output name=PATCH::$(cargo pkgid | cut -d# -f2 | cut -d. -f3)"
         id: version
       - name: Bump release version
-      id: bump_version
-      uses: christian-draeger/increment-semantic-version@1.0.2
+        id: bump_version
+        uses: christian-draeger/increment-semantic-version@1.0.2
         with:
           current-version: echo "${{ steps.version.outputs.MAJOR }}.${{ steps.version.outputs.MINOR }}.${{ steps.version.outputs.PATCH }}"
           version-fragment: 'bug'
