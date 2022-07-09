@@ -1,20 +1,23 @@
 name: CD
 on:
   pull_request:
-    paths:
-      - "!.github/workflows/ci.yml"
+#    paths:
+#      - "!.github/workflows/ci.yml"
     branches:
       - main
   push:
-    paths:
-      - "!.github/workflows/ci.yml"
+#    paths:
+#      - "!.github/workflows/ci.yml"
     branches:
       - main
 
 jobs:
   release:
     name: Release
-    if: github.ref == 'refs/heads/main'
+    if: |
+      (github.ref == 'refs/heads/main' &&
+      contains(github.event.head_commit.message, 'release'))
+
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
