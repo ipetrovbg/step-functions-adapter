@@ -10,9 +10,9 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-#        with:
-#          token: ${{ secrets.GH_RELEASE_TOKEN }}
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_RELEASE_TOKEN }}
 #          fetch-depth: 0
 #      - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Setup Cargo
@@ -23,7 +23,7 @@ jobs:
       - run: cargo v 0.2.0 -y
       - name: Set git user config
         run: |
-          git config user.email ipetrovbg@gmail.com
-          git config user.name Petar Petrov
-      - run: git commit -m "chore:release"
-      - run: git push
+          git config user.email github-actions@github.com
+          git config user.name github-actions@github.com
+          git commit -m "chore:release"
+          git push
