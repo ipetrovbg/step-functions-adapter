@@ -10,6 +10,8 @@ on:
       - ".github/workflows/ci.yml"
     branches:
       - main
+env:
+  VERSION: '0.2.10'
 
 jobs:
   release:
@@ -25,7 +27,7 @@ jobs:
         with:
           toolchain: stable
       - run: cargo install cargo-v
-      - run: cargo v 0.2.9 -y
+      - run: cargo v ${{ env.VERSION }} -y
       - name: Set git user config
         run: |
           git config user.email ipetrovbg@gmail.com
