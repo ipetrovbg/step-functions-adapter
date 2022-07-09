@@ -1,0 +1,30 @@
+stepFunctions:
+  validate: true # enable pre-deployment definition validation (disabled by default)
+  stateMachines:
+    Test:
+      name: Test
+      definition:
+        Comment: "Test AWS Step Functions"
+        StartAt: PrepareExecutionInfo
+        States:
+          StepOne:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [ createOrderWithWorldPay, Arn ]
+              ResultPath: "$.threeDSTasks.createOrder"
+              Next: StepTwo
+          StepTwo:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [ someFunction, Arn ]
+              ResultPath: "$.threeDSTasks.createOrder"
+              End: true
+    HelloStateMachine:
+      name: Hello
+      definition:
+        Comment: Hello State Machine comment
+        StartAt: FirstStep
+        States:
+          FirstStep:
+            Type: Task
+            End: true
