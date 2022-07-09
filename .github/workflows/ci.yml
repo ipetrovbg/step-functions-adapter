@@ -1,5 +1,10 @@
 name: CD
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/ci.yml"
+    branches:
+      - main
   push:
     paths:
       - ".github/workflows/ci.yml"
@@ -9,6 +14,7 @@ on:
 jobs:
   release:
     name: Release
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -19,7 +25,7 @@ jobs:
         with:
           toolchain: stable
       - run: cargo install cargo-v
-      - run: cargo v 0.2.8 -y
+      - run: cargo v 0.2.9 -y
       - name: Set git user config
         run: |
           git config user.email ipetrovbg@gmail.com
