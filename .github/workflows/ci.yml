@@ -37,7 +37,7 @@ jobs:
         uses: christian-draeger/increment-semantic-version@1.0.2
         with:
           current-version: ${{ steps.version.outputs.MAJOR }}.${{ steps.version.outputs.MINOR }}.${{ steps.version.outputs.PATCH }}
-          version-fragment: 'bug'
+          version-fragment: 'feature' #Possible options are [ major | feature | bug | alpha | beta | rc ]
       - name: Do something with your bumped release version
         run: echo ${{ steps.bump_version.outputs.next-version }}
         # will print 2.12.0
