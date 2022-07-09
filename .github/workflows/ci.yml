@@ -1,6 +1,9 @@
 name: CD
 on:
   push:
+    paths:
+      - '!Cargo.lock'
+      - '!Cargo.toml'
     branches:
       - main
 env:
