@@ -20,10 +20,10 @@ jobs:
         with:
           toolchain: stable
       - run: cargo install cargo-v
-      - name: Update version
-        run: echo "::set-output name=VERSION:: | cargo pkgid | cut -d# -f2 | cut -d: -f2"
-        id: version
-      - run: cargo v ${{ steps.version.outputs.VERSION }} -y
+#      - name: Update version
+#        run: echo "::set-output name=VERSION::$(echo cargo pkgid | cut -d# -f2 | cut -d":" -f2)"
+#        id: version
+      - run: cargo v $(echo cargo pkgid | cut -d# -f2 | cut -d":" -f2) -y
       - name: Set git user config
         run: |
           git config user.email github-actions@github.com
