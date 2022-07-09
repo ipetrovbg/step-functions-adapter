@@ -25,7 +25,7 @@ jobs:
       - run: cargo v 0.2.7 -y
       - name: Set git user config
         run: |
-          git config user.email github-actions@github.com
-          git config user.name github-actions@github.com
+          git config user.email ipetrovbg@gmail.com
+          git config user.name Petar Petrov
           git commit -m "chore:release"
           git push origin main
