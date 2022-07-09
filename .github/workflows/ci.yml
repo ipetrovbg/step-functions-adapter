@@ -2,12 +2,12 @@ name: CD
 on:
   pull_request:
     paths:
-      - ".github/workflows/ci.yml"
+      - "!.github/workflows/ci.yml"
     branches:
       - main
   push:
     paths:
-      - ".github/workflows/ci.yml"
+      - "!.github/workflows/ci.yml"
     branches:
       - main
 
@@ -31,11 +31,11 @@ jobs:
           echo "::set-output name=PATCH::$(cargo pkgid | cut -d# -f2 | cut -d. -f3)"
         id: version
       - run: echo "${{ steps.version.outputs.MAJOR }}.${{ steps.version.outputs.MINOR }}.${{ steps.version.outputs.PATCH }}"
-#      - run: cargo install cargo-v
-#      - run: cargo v ${{ steps.version.outputs.MAJOR }}.${{ steps.version.outputs.MINOR }}.${{ steps.version.outputs.PATCH }} -y
-#      - name: Set git user config
-#        run: |
-#          git config user.email ipetrovbg@gmail.com
-#          git config user.name Petar Petrov
-#          git commit -m "chore:bump version"
-#          git push
+      - run: cargo install cargo-v
+      - run: cargo v ${{ steps.version.outputs.MAJOR }}.${{ steps.version.outputs.MINOR }}.${{ steps.version.outputs.PATCH + 1 }} -y
+      - name: Set git user config
+        run: |
+          git config user.email ipetrovbg@gmail.com
+          git config user.name Petar Petrov
+          git commit -m "chore:bump version"
+          git push
