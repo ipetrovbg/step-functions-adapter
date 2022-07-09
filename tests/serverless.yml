@@ -4,20 +4,20 @@ stepFunctions:
     Test:
       name: Test
       definition:
-        Comment: "Test AWS Step Functions"
-        StartAt: PrepareExecutionInfo
+        Comment: Test AWS Step Functions
+        StartAt: StepOne
         States:
           StepOne:
             Type: Task
             Resource:
-              Fn::GetAtt: [ createOrderWithWorldPay, Arn ]
-              ResultPath: "$.threeDSTasks.createOrder"
+              Fn::GetAtt: [ someTestFunction, Arn ]
+              ResultPath: "$.someTestPath"
               Next: StepTwo
           StepTwo:
             Type: Task
             Resource:
               Fn::GetAtt: [ someFunction, Arn ]
-              ResultPath: "$.threeDSTasks.createOrder"
+              ResultPath: "$.anotherTestPath"
               End: true
     HelloStateMachine:
       name: Hello
@@ -26,5 +26,5 @@ stepFunctions:
         StartAt: FirstStep
         States:
           FirstStep:
-            Type: Task
+            Type: Pass
             End: true
