@@ -1,13 +1,14 @@
 name: CD
 on:
   push:
+    paths:
+      - ".github/workflows/ci.yml"
     branches:
       - main
 
 jobs:
   release:
     name: Release
-    if: contains(github.event.head_commit.message, 'release')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -18,7 +19,7 @@ jobs:
         with:
           toolchain: stable
       - run: cargo install cargo-v
-      - run: cargo v 0.2.7 -y
+      - run: cargo v 0.2.8 -y
       - name: Set git user config
         run: |
           git config user.email ipetrovbg@gmail.com
