@@ -14,9 +14,7 @@ on:
 jobs:
   release:
     name: Release
-    if: |
-      (github.ref == 'refs/heads/main' &&
-      contains(github.event.head_commit.message, 'release'))
+    if: github.ref == 'refs/heads/main'
 
     runs-on: ubuntu-latest
     steps:
