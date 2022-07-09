@@ -37,16 +37,12 @@ jobs:
         uses: christian-draeger/increment-semantic-version@1.0.2
         with:
           current-version: ${{ steps.version.outputs.MAJOR }}.${{ steps.version.outputs.MINOR }}.${{ steps.version.outputs.PATCH }}
-          version-fragment: 'feature' #Possible options are [ major | feature | bug | alpha | beta | rc ]
-      - name: Do something with your bumped release version
-        run: echo ${{ steps.bump_version.outputs.next-version }}
-        # will print 2.12.0
-#      - run: echo "${{ steps.version.outputs.MAJOR }}.${{ steps.version.outputs.MINOR }}.${{ steps.version.outputs.PATCH }}"
-#      - run: cargo install cargo-v
-#      - run: cargo v ${{ steps.version.outputs.MAJOR }}.${{ steps.version.outputs.MINOR }}.${{ (steps.version.outputs.PATCH + 1) }} -y
-#      - name: Set git user config
-#        run: |
-#          git config user.email ipetrovbg@gmail.com
-#          git config user.name Petar Petrov
-#          git commit -m "chore:bump version"
-#          git push
+          version-fragment: 'bug' #Possible options are [ major | feature | bug | alpha | beta | rc ]
+      - run: cargo install cargo-v
+      - run: cargo v ${{ steps.bump_version.outputs.next-version }} -y
+      - name: Set git user config
+        run: |
+          git config user.email ipetrovbg@gmail.com
+          git config user.name Petar Petrov
+          git commit -m "chore:bump version"
+          git push
