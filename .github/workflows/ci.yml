@@ -28,7 +28,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: assets-for-download
-          path: target/release/step-functions-adapter
+          path: target/release
 #      - name: Commit artifacts
 #        run: |
 #          git config user.email ipetrovbg@gmail.com
