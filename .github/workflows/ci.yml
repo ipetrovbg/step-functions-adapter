@@ -24,14 +24,14 @@ jobs:
         with:
           toolchain: stable
       - run: cargo build --release
-      - run: |
-          mkdir artifacts
-          mv target/release/step-functions-adapter artifacts
+#      - run: |
+#          mkdir artifacts
+#          mv target/release/step-functions-adapter artifacts
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: assets-for-download
-          path: artifacts
+          path: target/release/step-functions-adapter
 #      - name: Commit artifacts
 #        run: |
 #          git config user.email ipetrovbg@gmail.com
