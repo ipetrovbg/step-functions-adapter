@@ -1,24 +1,6 @@
 stepFunctions:
-  validate: true # enable pre-deployment definition validation (disabled by default)
+  validate: true
   stateMachines:
-    Test:
-      name: Test
-      definition:
-        Comment: Test AWS Step Functions
-        StartAt: StepOne
-        States:
-          StepOne:
-            Type: Task
-            Resource:
-              Fn::GetAtt: [ someTestFunction, Arn ]
-              ResultPath: "$.someTestPath"
-              Next: StepTwo
-          StepTwo:
-            Type: Task
-            Resource:
-              Fn::GetAtt: [ someFunction, Arn ]
-              ResultPath: "$.anotherTestPath"
-              End: true
     HelloStateMachine:
       name: Hello
       definition:
@@ -26,5 +8,11 @@ stepFunctions:
         StartAt: FirstStep
         States:
           FirstStep:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [ someTestFunction, Arn ]
+              ResultPath: "$.someTestPath"
+            Next: StepTwo
+          StepTwo:
             Type: Pass
             End: true

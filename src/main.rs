@@ -20,7 +20,9 @@ fn main() {
                                     println!("yaml file doesn't contain any step functions definitions!")
                                 }
                                 Some(step_functions) => {
-                                    println!("{:#?}", step_functions);
+                                    for state_machine in step_functions.state_machines.iter() {
+                                        println!("{}", state_machine.1);
+                                    }
                                 }
                             }
                         }
