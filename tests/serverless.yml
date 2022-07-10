@@ -12,7 +12,7 @@ stepFunctions:
             Resource:
               Fn::GetAtt: [ someTestFunction, Arn ]
               ResultPath: "$.someTestPath"
-            Next: StepTwo
-          StepTwo:
+            Next: SecondStep
+          SecondStep:
             Type: Pass
             End: true
