@@ -8,11 +8,40 @@ on:
       - main
 
 jobs:
-  release:
-    name: Release
+
+  build:
+    name: Build artifacts
     if: |
       (github.ref == 'refs/heads/main' &&
       contains(github.event.head_commit.message, 'chore: release'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_RELEASE_TOKEN }}
+      - name: Setup Cargo
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: cargo build --release
+      - run: |
+          mkdir artifacts
+          mv target/release/step-functions-adapter artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: assets-for-download
+          path: artifacts
+#      - name: Commit artifacts
+#        run: |
+#          git config user.email ipetrovbg@gmail.com
+#          git config user.name Petar Petrov
+#          git commit -m "chore:bump version"
+#          git push
+
+  release:
+    name: Release
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
