@@ -4,15 +4,35 @@ stepFunctions:
     HelloStateMachine:
       name: Hello
       definition:
-        Comment: Hello State Machine comment
+        Comment: State Machine comment
         StartAt: FirstStep
         States:
           FirstStep:
             Type: Task
             Resource:
-              Fn::GetAtt: [ someTestFunction, Arn ]
-              ResultPath: "$.someTestPath"
+              Fn::GetAtt: [hello, Arn]
+            ResultPath: "$.hello"
             Next: SecondStep
           SecondStep:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [world, Arn]
+            Next: ChoiceStep
+          ChoiceStep:
+            Type: Choice
+            Choices:
+              - Variable: "$.userId"
+                IsPresent: true
+                Next: GetUser
+              - Variable: "$.userId"
+                IsPresent: false
+                Next: Third Step
+            Default: Third Step
+          GetUser:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [getUser, Arn]
+            Next: Third Step
+          Third Step:
             Type: Pass
             End: true

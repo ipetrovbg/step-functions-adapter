@@ -1,13 +1,17 @@
 use clap::{Parser, Subcommand};
-use std::path::PathBuf;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use std::fmt::{Display, Formatter, Pointer, write};
-use serde::{Serialize, Deserialize};
+use std::fmt::{Display, Formatter, write};
+use std::path::PathBuf;
+use serde_yaml::{Mapping, Value};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 #[clap(name = "adapter")]
-#[clap(about = "Step Functions Adapter CLI", long_about = "CLI adapter for AWS Step Functions and Serverless framework written in Rust")]
+#[clap(
+    about = "Step Functions Adapter CLI",
+    long_about = "CLI adapter for AWS Step Functions and Serverless framework written in Rust"
+)]
 pub struct Adapter {
     #[clap(subcommand)]
     pub command: Commands,
@@ -19,13 +23,22 @@ pub enum Commands {
     Parse {
         #[clap(required = true, value_parser)]
         path: PathBuf,
-    }
+    },
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct LambdaFunction {
+    pub handler: String,
+    pub timeout: Option<i8>,
+    #[serde(rename = "memorySize")]
+    pub memory_size: Option<i16>
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Serverless {
     #[serde(rename = "stepFunctions")]
     pub step_functions: Option<StepFunctions>,
+    pub functions: Option<BTreeMap<String, LambdaFunction>>
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -35,7 +48,38 @@ pub struct StateMachineDefinition {
     #[serde(rename = "StartAt")]
     pub start_at: String,
     #[serde(rename = "States")]
-    pub states: BTreeMap<String, Step>
+    pub states: BTreeMap<String, Step>,
+}
+
+impl Display for StateMachineDefinition {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match &self.comment {
+            None => {}
+            Some(comment) => {
+                writeln!(f, "  \"Comment\": \"{}\",", comment)?;
+            }
+        }
+
+        writeln!(f, "  \"StartAt\": \"{}\",", self.start_at)?;
+
+        if !self.states.is_empty() {
+            writeln!(f, "  \"States\": {{")?;
+
+            for (key, step) in self.states.iter() {
+                writeln!(f, "    \"{}\": {{", key)?;
+                print!("    {}", step);
+
+                if let Some(_) = step.end {
+                    writeln!(f, "    }}")?;
+                } else {
+                    writeln!(f, "    }},")?;
+                }
+            }
+            writeln!(f, "  }}")?;
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -48,23 +92,6 @@ pub enum Type {
     Wait,
     Map,
     Parallel,
-}
-
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Step {
-    #[serde(rename = "Type")]
-    pub step_type: Type,
-    #[serde(rename = "End")]
-    pub end: Option<bool>,
-    #[serde(rename = "Next")]
-    pub next: Option<String>
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct StateMachines {
-    pub name: String,
-    pub definition: StateMachineDefinition
 }
 
 impl Display for Type {
@@ -99,20 +126,91 @@ impl Display for Type {
     }
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Step {
+    #[serde(rename = "Type")]
+    pub step_type: Type,
+
+    #[serde(rename = "End")]
+    pub end: Option<bool>,
+
+    #[serde(rename = "Next")]
+    pub next: Option<String>,
+
+    #[serde(rename = "Resource")]
+    pub resource: Option<BTreeMap<String, Value>>,
+
+    #[serde(rename = "ResultPath")]
+    pub result_path: Option<String>,
+
+    #[serde(rename = "Choices")]
+    pub choices: Option<Vec<Choice>>
+}
+
 impl Display for Step {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         print!("  {}", self.step_type);
         match self.step_type {
             Type::Task => {
-                write!(f, "        \"Resource\": \"arn:aws:states:::lambda:invoke\",")?;
+                match &self.resource {
+                    None => {}
+                    Some(resource) => {
+                        write!(f, "        \"Resource\": \"arn:aws:states:::lambda:invoke\",")?;
+                        writeln!(f, "")?;
+                        writeln!(f, "        \"Parameters\": {{")?;
+                        for (key, resource) in resource.iter() {
+                            match key.as_str() {
+                                "Fn::GetAtt" => {
+                                    let attr = resource.as_sequence().unwrap();
+                                    let lambda_name = attr.first().unwrap().as_str().unwrap();
+                                    write!(f,
+                                           "            \"FunctionName\": \"arn:aws:lambda:eu-central-1:00000000000:function:{}\"",
+                                           lambda_name
+                                    )?;
+                                },
+                                _ => {}
+                            }
+                        }
+                        writeln!(f, "")?;
+                        writeln!(f, "        }},")?;
+                    }
+                }
+
+                match &self.result_path {
+                    None => {}
+                    Some(result_path) => {
+                        writeln!(f, "        \"ResultPath\": \"{}\",", result_path)?;
+                    }
+                }
+
+            }
+            Type::Choice => {
+                match &self.choices {
+                    None => {}
+                    Some(choices) => {
+                        let length = choices.len();
+                        let mut current: usize = 1;
+                        writeln!(f, "        \"Choices\": [")?;
+                        for choice in choices {
+                            writeln!(f, "            {{")?;
+                            println!("                {}", &choice);
+                            if current == length {
+                                writeln!(f, "            }}")?;
+                            } else {
+                                writeln!(f, "            }},")?;
+                            }
+                            current = current + 1;
+                        }
+                        write!(f, "        ]")?;
+                    }
+                }
+
             }
             _ => {}
         }
 
         match self.end {
-            None => {
-                writeln!(f, "")?;
-            }
+            None => {}
             Some(end) => {
                 if end {
                     write!(f, "        \"End\": true")?;
@@ -131,29 +229,51 @@ impl Display for Step {
     }
 }
 
-impl Display for StateMachineDefinition {
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Choice {
+    #[serde(rename = "Variable")]
+    variable: String,
+
+    #[serde(rename = "IsPresent")]
+    is_present: Option<bool>,
+
+    #[serde(rename = "Next")]
+    pub next: Option<String>,
+}
+
+impl Display for Choice {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match &self.comment {
+        write!(f, "\"Variable\": \"{}\"", self.variable)?;
+        match self.is_present {
             None => {}
-            Some(comment) => {
-                writeln!(f, "  \"Comment\": \"{}\",", comment)?;
+            Some(is_present) => {
+                if is_present {
+                    write!(f, ",")?;
+                    writeln!(f, "")?;
+                    writeln!(f, "                \"IsPresent\": true,")?;
+                } else {
+                    write!(f, ",")?;
+                    writeln!(f, "")?;
+                    writeln!(f, "                \"IsPresent\": false,")?;
+                }
             }
         }
 
-        writeln!(f, "  \"StartAt\": \"{}\",", self.start_at)?;
-
-        if !self.states.is_empty() {
-            writeln!(f, "  \"States\": {{")?;
-            for (key, step) in self.states.iter() {
-                writeln!(f, "    \"{}\": {{", key)?;
-                print!("    {}", step);
-                writeln!(f, "    }},")?;
+        match &self.next {
+            None => {}
+            Some(next) => {
+                write!(f, "                \"Next\": \"{}\"", next)?;
             }
-            writeln!(f, "  }}")?;
         }
 
         Ok(())
     }
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct StateMachines {
+    pub name: String,
+    pub definition: StateMachineDefinition,
 }
 
 impl Display for StateMachines {

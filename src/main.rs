@@ -1,6 +1,9 @@
 mod model;
-use clap::{Parser};
+
+use std::collections::BTreeMap;
+use clap::Parser;
 use std::fs;
+
 extern crate serde_yaml;
 
 use model::{Serverless, Adapter, Commands};
@@ -20,8 +23,8 @@ fn main() {
                                     println!("yaml file doesn't contain any step functions definitions!")
                                 }
                                 Some(step_functions) => {
-                                    for state_machine in step_functions.state_machines.iter() {
-                                        println!("{}", state_machine.1);
+                                    for (_, state_machine) in step_functions.state_machines.iter() {
+                                        println!("{}", state_machine);
                                     }
                                 }
                             }
