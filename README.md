@@ -70,7 +70,7 @@ This command will output something like this in `test/serverless.json` file.
 }
 ```
 
-2. Go to AWS console, navigate to Step Functions service and import generated `serverless.json` file.
+2. Go to AWS console, navigate to Step Functions service and import the generated `serverless.json` file.
 
 Hopefully you'll see something similar like this.
 
