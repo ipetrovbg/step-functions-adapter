@@ -58,7 +58,7 @@ This command will output something like this in `test/serverless.json` file.
         "Type": "Task",
         "Resource": "arn:aws:states:::lambda:invoke",
         "Parameters": {
-            "FunctionName": "arn:aws:lambda:eu-central-1:00000000000:function:nextFunction"
+            "FunctionName": "arn:aws:lambda:eu-central-1:00000000000:function:world"
         },
         "Next": "ChoiceStep"
     },
