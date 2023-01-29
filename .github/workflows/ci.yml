@@ -1,13 +1,13 @@
 name: CD
 on:
-  release:
-    types: [ published ]
+#  release:
+#    types: [ published ]
 #  pull_request:
 #    branches:
 #      - main
-#  push:
-#    branches:
-#      - main
+  push:
+    branches:
+      - main
 
 jobs:
 
@@ -47,5 +47,5 @@ jobs:
         run: |
           git config user.email ipetrovbg@gmail.com
           git config user.name Petar Petrov
-          git commit -m "chore:bump version"
+          git commit -m "chore:bump version [skip ci]"
           git push
