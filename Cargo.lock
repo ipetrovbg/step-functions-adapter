@@ -201,7 +201,7 @@ dependencies = [
 
 [[package]]
 name = "step-functions-adapter"
-version = "0.2.20"
+version = "2.0.0"
 dependencies = [
  "clap",
  "serde",
