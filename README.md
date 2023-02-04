@@ -72,7 +72,7 @@ This command will output something like this in `test/serverless.json` file.
 
 2. Go to AWS console, navigate to Step Functions service and import the generated `serverless.json` file.
 
-Hopefully you'll see something similar like this.
+Hopefully you'll see something similar to this.
 
 <img width="1263" alt="image" src="https://user-images.githubusercontent.com/12900528/215326497-087cfa0c-affa-4e05-985d-051a2ab6f526.png">
 
