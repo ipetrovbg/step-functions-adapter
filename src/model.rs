@@ -1,9 +1,10 @@
+use std::collections::BTreeMap;
+use std::fmt::{Display, Formatter};
+use std::path::PathBuf;
+
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-use std::fmt::{Display, Formatter, write};
-use std::path::PathBuf;
-use serde_yaml::{Mapping, Value};
+use serde_yaml::Value;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -38,7 +39,7 @@ pub struct LambdaFunction {
 pub struct Serverless {
     #[serde(rename = "stepFunctions")]
     pub step_functions: Option<StepFunctions>,
-    pub functions: Option<BTreeMap<String, LambdaFunction>>
+    pub functions: Option<BTreeMap<String, LambdaFunction>>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -64,17 +65,29 @@ impl Display for StateMachineDefinition {
 
         if !self.states.is_empty() {
             writeln!(f, "  \"States\": {{")?;
+            let mut iteration = 1;
 
             for (key, step) in self.states.iter() {
                 writeln!(f, "    \"{}\": {{", key)?;
                 print!("    {}", step);
 
                 if let Some(_) = step.end {
-                    writeln!(f, "    }}")?;
+                    if (iteration) == self.states.iter().len() {
+                        writeln!(f, "    }}")?;
+                    } else {
+                        writeln!(f, "    }},")?;
+                    }
                 } else {
-                    writeln!(f, "    }},")?;
+                    if (iteration) == self.states.iter().len() {
+                        writeln!(f, "    }}")?;
+                    } else {
+                        writeln!(f, "    }},")?;
+                    }
                 }
+
+                iteration += 1;
             }
+
             writeln!(f, "  }}")?;
         }
 
@@ -138,13 +151,16 @@ pub struct Step {
     pub next: Option<String>,
 
     #[serde(rename = "Resource")]
-    pub resource: Option<BTreeMap<String, Value>>,
+    pub resource: Option<Value>,
 
     #[serde(rename = "ResultPath")]
     pub result_path: Option<String>,
 
     #[serde(rename = "Choices")]
-    pub choices: Option<Vec<Choice>>
+    pub choices: Option<Vec<Choice>>,
+
+    #[serde(rename = "Catch")]
+    pub catch: Option<Vec<Catch>>
 }
 
 impl Display for Step {
@@ -155,24 +171,34 @@ impl Display for Step {
                 match &self.resource {
                     None => {}
                     Some(resource) => {
-                        write!(f, "        \"Resource\": \"arn:aws:states:::lambda:invoke\",")?;
-                        writeln!(f, "")?;
-                        writeln!(f, "        \"Parameters\": {{")?;
-                        for (key, resource) in resource.iter() {
-                            match key.as_str() {
-                                "Fn::GetAtt" => {
-                                    let attr = resource.as_sequence().unwrap();
-                                    let lambda_name = attr.first().unwrap().as_str().unwrap();
-                                    write!(f,
-                                           "            \"FunctionName\": \"arn:aws:lambda:eu-central-1:00000000000:function:{}\"",
-                                           lambda_name
-                                    )?;
-                                },
-                                _ => {}
+                        match resource {
+                            Value::String(resource) => {
+                                writeln!(f, "        \"Resource\": \"{}\",", resource)?;
                             }
+                            Value::Mapping(resource) => {
+                                for resource in resource.iter() {
+                                    match resource.0.as_str() {
+                                        None => {}
+                                        Some(get_attr) => {
+                                            if get_attr == "Fn::GetAtt" {
+                                                let attr = resource.1.as_sequence().unwrap();
+                                                let lambda_name = attr.first().unwrap().as_str().unwrap();
+                                                write!(f, "        \"Resource\": \"arn:aws:states:::lambda:invoke\",")?;
+                                                writeln!(f, "")?;
+                                                writeln!(f, "        \"Parameters\": {{")?;
+                                                write!(f,
+                                                       "            \"FunctionName\": \"arn:aws:lambda:eu-central-1:00000000000:function:{}\"",
+                                                       lambda_name
+                                                )?;
+                                                writeln!(f, "")?;
+                                                writeln!(f, "        }},")?;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            _ => {}
                         }
-                        writeln!(f, "")?;
-                        writeln!(f, "        }},")?;
                     }
                 }
 
@@ -182,7 +208,6 @@ impl Display for Step {
                         writeln!(f, "        \"ResultPath\": \"{}\",", result_path)?;
                     }
                 }
-
             }
             Type::Choice => {
                 match &self.choices {
@@ -204,7 +229,6 @@ impl Display for Step {
                         write!(f, "        ]")?;
                     }
                 }
-
             }
             _ => {}
         }
@@ -230,12 +254,27 @@ impl Display for Step {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Catch {
+    pub ErrorEquals: Vec<String>,
+    pub Next: String,
+    pub ResultPath: String,
+}
+impl Display for Catch {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        Ok(())
+    }
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Choice {
     #[serde(rename = "Variable")]
     variable: String,
 
     #[serde(rename = "IsPresent")]
     is_present: Option<bool>,
+
+    #[serde(rename = "BooleanEquals")]
+    bool_equals: Option<bool>,
 
     #[serde(rename = "Next")]
     pub next: Option<String>,
@@ -256,6 +295,21 @@ impl Display for Choice {
                     writeln!(f, "")?;
                     writeln!(f, "                \"IsPresent\": false,")?;
                 }
+            }
+        }
+
+        match self.bool_equals {
+            None => {}
+            Some(bool_equals) => {
+               if bool_equals {
+                   write!(f, ",")?;
+                   writeln!(f, "")?;
+                   writeln!(f, "                \"BooleanEquals\": true,")?;
+               } else {
+                   write!(f, ",")?;
+                   writeln!(f, "")?;
+                   writeln!(f, "                \"BooleanEquals\": false,")?;
+               }
             }
         }
 

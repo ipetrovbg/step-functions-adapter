@@ -1,13 +1,11 @@
 mod model;
 
-use std::collections::BTreeMap;
 use clap::Parser;
 use std::fs;
 
 extern crate serde_yaml;
 
 use model::{Serverless, Adapter, Commands};
-
 
 fn main() {
     let args = Adapter::parse();
@@ -23,14 +21,24 @@ fn main() {
                                     println!("yaml file doesn't contain any step functions definitions!")
                                 }
                                 Some(step_functions) => {
+                                    println!("[");
+                                    let mut iteration = 0;
                                     for (_, state_machine) in step_functions.state_machines.iter() {
-                                        println!("{}", state_machine);
+                                        if (iteration + 1) == step_functions.state_machines.len() {
+                                            println!("{}", state_machine);
+                                        } else {
+                                            println!("{},", state_machine);
+                                        }
+
+                                        iteration += 1;
                                     }
+                                    print!("]");
                                 }
                             }
                         }
-                        Err(_) => {
-                            println!("Couldn't parse the yaml file!")
+                        Err(e) => {
+                            print!("Couldn't parse yml file due to: \"");
+                            print!("{}\"", e)
                         }
                     }
                 }
