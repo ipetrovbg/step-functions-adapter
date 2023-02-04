@@ -123,7 +123,7 @@ impl Display for Type {
                 writeln!(f, "  \"Type\": \"Fail\",")?;
             }
             Type::Succeed => {
-                writeln!(f, "  \"Type\": \"Succeed\",")?;
+                writeln!(f, "  \"Type\": \"Succeed\"")?;
             }
             Type::Wait => {
                 writeln!(f, "  \"Type\": \"Wait\",")?;
@@ -160,7 +160,10 @@ pub struct Step {
     pub choices: Option<Vec<Choice>>,
 
     #[serde(rename = "Catch")]
-    pub catch: Option<Vec<Catch>>
+    pub catch: Option<Vec<Catch>>,
+
+    #[serde(rename = "Default")]
+    pub default: Option<String>
 }
 
 impl Display for Step {
@@ -233,6 +236,11 @@ impl Display for Step {
             _ => {}
         }
 
+        if let Some(default) = &self.default {
+            writeln!(f, ",")?;
+            write!(f, "        \"Default\": \"{}\"", default)?;
+        }
+
         match self.end {
             None => {}
             Some(end) => {
@@ -241,6 +249,24 @@ impl Display for Step {
                 }
             }
         }
+
+        if let Some(catches) = &self.catch {
+                writeln!(f, "       \"Catch\": [")?;
+            let mut iteration = 1;
+            for catch in catches {
+                println!("          {{");
+                println!("              {}", catch);
+                if iteration == catches.len() {
+                    println!("          }}");
+                } else {
+                    println!("          }},");
+                }
+                iteration += 1;
+            }
+                println!("       ],");
+        }
+
+
         match &self.next {
             None => {
                 writeln!(f, "")?;
@@ -255,12 +281,26 @@ impl Display for Step {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Catch {
-    pub ErrorEquals: Vec<String>,
-    pub Next: String,
-    pub ResultPath: String,
+    #[serde(rename = "ErrorEquals")]
+    pub error_equals: Vec<String>,
+    #[serde(rename = "Next")]
+    pub next: String,
+    #[serde(rename = "ResultPath")]
+    pub result_path: String,
 }
 impl Display for Catch {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\"ErrorEquals\": [")?;
+        for error_equal in &self.error_equals {
+            writeln!(f, "               \"{}\"", error_equal)?;
+        }
+        writeln!(f, "              ],")?;
+
+        writeln!(f, "              \"ResultPath\": \"{}\",", &self.result_path)?;
+
+        writeln!(f, "              \"Next\": \"{}\"", &self.next)?;
+
+
         Ok(())
     }
 }
