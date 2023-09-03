@@ -32,7 +32,7 @@ pub struct LambdaFunction {
     pub handler: String,
     pub timeout: Option<i8>,
     #[serde(rename = "memorySize")]
-    pub memory_size: Option<i16>
+    pub memory_size: Option<i16>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -163,7 +163,7 @@ pub struct Step {
     pub catch: Option<Vec<Catch>>,
 
     #[serde(rename = "Default")]
-    pub default: Option<String>
+    pub default: Option<String>,
 }
 
 impl Display for Step {
@@ -173,36 +173,35 @@ impl Display for Step {
             Type::Task => {
                 match &self.resource {
                     None => {}
-                    Some(resource) => {
-                        match resource {
-                            Value::String(resource) => {
-                                writeln!(f, "        \"Resource\": \"{}\",", resource)?;
-                            }
-                            Value::Mapping(resource) => {
-                                for resource in resource.iter() {
-                                    match resource.0.as_str() {
-                                        None => {}
-                                        Some(get_attr) => {
-                                            if get_attr == "Fn::GetAtt" {
-                                                let attr = resource.1.as_sequence().unwrap();
-                                                let lambda_name = attr.first().unwrap().as_str().unwrap();
-                                                write!(f, "        \"Resource\": \"arn:aws:states:::lambda:invoke\",")?;
-                                                writeln!(f, "")?;
-                                                writeln!(f, "        \"Parameters\": {{")?;
-                                                write!(f,
+                    Some(resource) => match resource {
+                        Value::String(resource) => {
+                            writeln!(f, "        \"Resource\": \"{}\",", resource)?;
+                        }
+                        Value::Mapping(resource) => {
+                            for resource in resource.iter() {
+                                match resource.0.as_str() {
+                                    None => {}
+                                    Some(get_attr) => {
+                                        if get_attr == "Fn::GetAtt" {
+                                            let attr = resource.1.as_sequence().unwrap();
+                                            let lambda_name =
+                                                attr.first().unwrap().as_str().unwrap();
+                                            write!(f, "        \"Resource\": \"arn:aws:states:::lambda:invoke\",")?;
+                                            writeln!(f, "")?;
+                                            writeln!(f, "        \"Parameters\": {{")?;
+                                            write!(f,
                                                        "            \"FunctionName\": \"arn:aws:lambda:eu-central-1:00000000000:function:{}\"",
                                                        lambda_name
                                                 )?;
-                                                writeln!(f, "")?;
-                                                writeln!(f, "        }},")?;
-                                            }
+                                            writeln!(f, "")?;
+                                            writeln!(f, "        }},")?;
                                         }
                                     }
                                 }
                             }
-                            _ => {}
                         }
-                    }
+                        _ => {}
+                    },
                 }
 
                 match &self.result_path {
@@ -212,27 +211,25 @@ impl Display for Step {
                     }
                 }
             }
-            Type::Choice => {
-                match &self.choices {
-                    None => {}
-                    Some(choices) => {
-                        let length = choices.len();
-                        let mut current: usize = 1;
-                        writeln!(f, "        \"Choices\": [")?;
-                        for choice in choices {
-                            writeln!(f, "            {{")?;
-                            println!("                {}", &choice);
-                            if current == length {
-                                writeln!(f, "            }}")?;
-                            } else {
-                                writeln!(f, "            }},")?;
-                            }
-                            current = current + 1;
+            Type::Choice => match &self.choices {
+                None => {}
+                Some(choices) => {
+                    let length = choices.len();
+                    let mut current: usize = 1;
+                    writeln!(f, "        \"Choices\": [")?;
+                    for choice in choices {
+                        writeln!(f, "            {{")?;
+                        println!("                {}", &choice);
+                        if current == length {
+                            writeln!(f, "            }}")?;
+                        } else {
+                            writeln!(f, "            }},")?;
                         }
-                        write!(f, "        ]")?;
+                        current = current + 1;
                     }
+                    write!(f, "        ]")?;
                 }
-            }
+            },
             _ => {}
         }
 
@@ -251,7 +248,7 @@ impl Display for Step {
         }
 
         if let Some(catches) = &self.catch {
-                writeln!(f, "       \"Catch\": [")?;
+            writeln!(f, "       \"Catch\": [")?;
             let mut iteration = 1;
             for catch in catches {
                 println!("          {{");
@@ -263,9 +260,8 @@ impl Display for Step {
                 }
                 iteration += 1;
             }
-                println!("       ],");
+            println!("       ],");
         }
-
 
         match &self.next {
             None => {
@@ -291,15 +287,24 @@ pub struct Catch {
 impl Display for Catch {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "\"ErrorEquals\": [")?;
+        let mut iter = 1;
         for error_equal in &self.error_equals {
-            writeln!(f, "               \"{}\"", error_equal)?;
+            if iter == self.error_equals.len() {
+                writeln!(f, "               \"{}\"", error_equal)?;
+            } else {
+                writeln!(f, "               \"{}\",", error_equal)?;
+            }
+            iter += 1;
         }
         writeln!(f, "              ],")?;
 
-        writeln!(f, "              \"ResultPath\": \"{}\",", &self.result_path)?;
+        writeln!(
+            f,
+            "              \"ResultPath\": \"{}\",",
+            &self.result_path
+        )?;
 
         writeln!(f, "              \"Next\": \"{}\"", &self.next)?;
-
 
         Ok(())
     }
@@ -341,15 +346,15 @@ impl Display for Choice {
         match self.bool_equals {
             None => {}
             Some(bool_equals) => {
-               if bool_equals {
-                   write!(f, ",")?;
-                   writeln!(f, "")?;
-                   writeln!(f, "                \"BooleanEquals\": true,")?;
-               } else {
-                   write!(f, ",")?;
-                   writeln!(f, "")?;
-                   writeln!(f, "                \"BooleanEquals\": false,")?;
-               }
+                if bool_equals {
+                    write!(f, ",")?;
+                    writeln!(f, "")?;
+                    writeln!(f, "                \"BooleanEquals\": true,")?;
+                } else {
+                    write!(f, ",")?;
+                    writeln!(f, "")?;
+                    writeln!(f, "                \"BooleanEquals\": false,")?;
+                }
             }
         }
 

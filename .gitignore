@@ -13,3 +13,9 @@ Cargo.lock
 .fleet/
 .DS_Store
 tests/serverless.json
+dist
+elm-stuff
+node_modules
+**/node_modules
+.SpaceVim.d/
+.parcel-cache/
